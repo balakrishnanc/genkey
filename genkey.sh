@@ -16,11 +16,31 @@ readonly KEY_SIZE=4096
 
 
 function show_usage {
-    echo "Usage: ${0} <output-path>" >& 2
+    echo "Usage: ${0} [-l] <output-path>" >& 2
 }
 
-[ $# -ne 1 ] && show_usage && exit 1
+while getopts ":hl" opt; do
+    case ${opt} in
+     "h" ) # Show help.
+        show_usage; exit 0;;
+     "l" ) # Force ".local" as domain name.
+        readonly NO_DOMAIN=2;;
+    esac
+done
+shift $((OPTIND -1))
 
+function get_hostname {
+    if [ ${NO_DOMAIN:-0} -eq 1 ]; then
+        echo `hostname -s`
+    elif [ ${NO_DOMAIN:-0} -eq 2 ]; then
+        echo "`hostname -s`.local"
+    else
+        echo `hostname`
+    fi
+}
+readonly HOSTNAME=`get_hostname`
+
+[ $# -ne 1 ] && show_usage && exit 1
 
 readonly OUT_PATH="$1"
 [ ! -d "${OUT_PATH}" ]                                &&
@@ -28,7 +48,7 @@ readonly OUT_PATH="$1"
     exit 1
 
 # File and comment format.
-readonly FMT=`whoami`@`hostname`-`date '+%m%d%Y'`
+readonly FMT="`whoami`@$HOSTNAME-`date '+%m%d%Y'`"
 readonly KEY_FILE="${OUT_PATH}/${FMT}"
 
 echo "#> generating ${KEY_TYPE} key ${KEY_FILE} ..."
