@@ -7,7 +7,9 @@
 #
 
 readonly SSH_KGEN='/usr/bin/ssh-keygen'
-readonly KEY_TYPE='rsa'
+
+# By default, generate `RSA` keys.
+KEY_TYPE='rsa'
 readonly KEY_SIZE=4096
 
 [ ! -f ${SSH_KGEN} ]                              &&
@@ -16,15 +18,21 @@ readonly KEY_SIZE=4096
 
 
 function show_usage {
-    echo "Usage: ${0} [-l] <output-path>" >& 2
+    echo "Usage: ${0} [-l] <output-path> [-t] <key-type>" >& 2
 }
 
-while getopts ":hl" opt; do
+while getopts ":hlt:" opt; do
     case ${opt} in
      "h" ) # Show help.
-        show_usage; exit 0;;
+        show_usage
+        exit 0
+        ;;
+     "t" ) # Key type.
+        KEY_TYPE=${OPTARG}
+        ;;
      "l" ) # Force ".local" as domain name.
-        readonly NO_DOMAIN=2;;
+        readonly NO_DOMAIN=2
+        ;;
     esac
 done
 shift $((OPTIND -1))
